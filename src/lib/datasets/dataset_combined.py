@@ -209,7 +209,8 @@ class ObjectPoseDataset(data.Dataset):
 
         def load_data(path, extensions):
             if self.opt.c == 'pallet':
-                from dataset_ndds import loadimages_ndds
+                print(f"Loading pallet dataset {path}")
+                from .dataset_ndds import loadimages_ndds
                 imgs = loadimages_ndds(path)
             else:
                 imgs = loadimages(path, extensions=extensions)

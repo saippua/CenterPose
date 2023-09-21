@@ -143,7 +143,7 @@ def loadimages_ndds(dir, max_count=None):
     files = filter(files, o['segmentation_class_id'], 300)
 
     for i, file in enumerate(files):
-        if True or not os.path.isfile(f"{file}.dope.json"):
+        if not os.path.isfile(f"{file}.dope.json"):
             with open(f"{file}.json", 'r') as f:
                 old_json = json.loads(f.read())
 
