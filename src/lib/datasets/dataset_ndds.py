@@ -119,7 +119,7 @@ def loadimages_ndds(dir, max_count=None):
     if max_count is not None:
         files = files[:max_count]
 
-    files = filter(files, o['segmentation_class_id'], 300)
+    # files = filter(files, o['segmentation_class_id'], 300)
 
     for i, file in enumerate(files):
         if not os.path.isfile(f"{file}.dope.json"):
