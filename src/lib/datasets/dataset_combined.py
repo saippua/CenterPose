@@ -102,6 +102,9 @@ class ObjectPoseDataset(data.Dataset):
         'shoe': [
             [0.10308848289662519, 0.10932616184503478, 0.2611737789760352, 1.0301976264129833, 2.6157393112424328, ],
             [0.02274768925924402, 0.044958380226590516, 0.04589720205423542, 0.3271000267177176, 0.8460337534776092, ]],
+        'pallet':[
+            [0.8, 0.144, 1.2, 0.144, 1.2 ],
+            [0.01, 0.01, 0.01, 0.01, 0.01 ]],
     }
 
     def __init__(self, opt, split):
@@ -205,8 +208,14 @@ class ObjectPoseDataset(data.Dataset):
             return imgs
 
         def load_data(path, extensions):
-            imgs = loadimages(path, extensions=extensions)
+            if self.opt.c == 'pallet':
+                print(f"Loading pallet dataset {path}")
+                from .dataset_ndds import loadimages_ndds
+                imgs = loadimages_ndds(path)
+            else:
+                imgs = loadimages(path, extensions=extensions)
             return imgs
+
 
         self.images = []
         print(self.img_dir)

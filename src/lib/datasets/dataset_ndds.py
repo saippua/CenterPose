@@ -13,7 +13,6 @@ def quatmult(q1, q2):
                      -x1 * z0 + y1 * w0 + z1 * x0 + w1 * y0,
                      x1 * y0 - y1 * x0 + z1 * w0 + w1 * z0], dtype=np.float64)
 
-
 def get_files(dir):
     files = [ file.split('.')[0] for file in os.listdir(dir) ]
     files = np.unique([ file for file in files if file.isnumeric() ])
@@ -123,7 +122,7 @@ def loadimages_ndds(dir, max_count=None):
     files = filter(files, o['segmentation_class_id'], 300)
 
     for i, file in enumerate(files):
-        if True or not os.path.isfile(f"{file}.dope.json"):
+        if not os.path.isfile(f"{file}.dope.json"):
             with open(f"{file}.json", 'r') as f:
                 old_json = json.loads(f.read())
 
