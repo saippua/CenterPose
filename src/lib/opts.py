@@ -190,6 +190,8 @@ class opts(object):
 
         self.parser.add_argument('--c', default='chair',
                                  help='category in objectron dataset')
+        self.parser.add_argument('--bg', default='', dest='bg_dir',
+                                 help='Directory of background images')
         self.parser.add_argument('--hps_uncertainty', action='store_true',
                                  help='Predict hps_uncertainty or not.')
         self.parser.add_argument('--obj_scale', action='store_true',

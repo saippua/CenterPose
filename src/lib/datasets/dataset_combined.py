@@ -29,6 +29,8 @@ import glob
 from lib.opts import opts
 from lib.detectors.detector_factory import detector_factory
 
+from .dataset_ndds import loadimages_ndds, swap_background
+
 
 def rotation_y_matrix(theta):
     M_R = np.array([[np.cos(theta), 0, np.sin(theta), 0],
@@ -128,6 +130,13 @@ class ObjectPoseDataset(data.Dataset):
         if split == 'val' and not os.path.isdir(self.img_dir):
             self.img_dir = os.path.join(self.data_dir, f"{opt.c}_test")
 
+        self.static_bg = opt.c != 'pallet'
+        if not self.static_bg:
+            self.bg_dir = opt.bg_dir
+            if not os.path.isdir(self.bg_dir):
+                print("Background directory not found!")
+                exit()
+
         self.max_objs = 10
         self._data_rng = np.random.RandomState(123)
         self._eig_val = np.array([0.2141788, 0.01817699, 0.00341571],
@@ -207,19 +216,31 @@ class ObjectPoseDataset(data.Dataset):
 
             return imgs
 
+        def loadbgs(root, extensions=['png']):
+            bgs = []
+            for file in os.listdir(root):
+                if os.path.splitext(file)[-1][1:] in extensions:
+                    bgs.append(os.path.join(root, file))
+
+            return bgs
+
         def load_data(path, extensions):
-            if self.opt.c == 'pallet':
-                print(f"Loading pallet dataset {path}")
-                from .dataset_ndds import loadimages_ndds
-                imgs = loadimages_ndds(path)
-            else:
+            if self.static_bg:
                 imgs = loadimages(path, extensions=extensions)
+            else:
+                print(f"Loading pallet dataset {path}")
+                imgs = loadimages_ndds(path)
             return imgs
 
-
-        self.images = []
-        print(self.img_dir)
-        self.images += load_data(self.img_dir, extensions=["png", 'jpg'])
+        self.images = load_data(self.img_dir, extensions=["png", 'jpg'])
+        print("Loading data from {}".format(self.img_dir))
+        if not self.static_bg:
+            self.bgs = loadbgs(self.bg_dir, extensions=["png", 'jpg'])
+            if len(self.bgs) == 0:
+                print(f"NO BACKGROUNDS FOUND IN DIR {self.bg_dir}")
+                exit()
+        else:
+            self.bgs = []
         self.num_samples = len(self.images)
         print('Loaded {} {} samples'.format(split, self.num_samples))
 
@@ -302,8 +323,12 @@ class ObjectPoseDataset(data.Dataset):
 
         # <editor-fold desc="Data initialization">
 
-        path_img, video_id, frame_id, path_json = self.images[index]
-        img_path = path_img
+        if self.static_bg:
+            img_path, video_id, frame_id, path_json = self.images[index]
+            mask = None
+        else:
+            img_path, video_id, frame_id, path_json, mask = self.images[index]
+
         with open(path_json) as f:
             anns = json.load(f)
         num_objs = min(len(anns['objects']), self.max_objs)
@@ -312,6 +337,14 @@ class ObjectPoseDataset(data.Dataset):
             img = cv2.imread(img_path)
         except:
             return None
+
+        if not self.static_bg:
+            # try:
+            bg_path = np.random.choice(self.bgs)
+            bg = cv2.imread(bg_path)
+            img = swap_background(img, bg, mask)
+            # except:
+            #     return None
 
         if self.opt.new_data_augmentation:
             # Only apply albumentations on spatial data augmentation, nothing to do with gt label

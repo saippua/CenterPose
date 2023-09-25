@@ -3,7 +3,7 @@ import json
 import numpy as np
 from tqdm import tqdm
 import os
-from PIL import Image
+import cv2
 
 def quatmult(q1, q2):
     w0, x0, y0, z0 = q1
@@ -97,11 +97,15 @@ def convert_json(old, cs):
     return new
 
 
+def swap_background(fg, bg, mask):
+    bg = cv2.resize(bg, fg.shape[:2], interpolation=cv2.INTER_CUBIC)
+    np.putmask(fg, 1-mask, bg)
 
-    
+    return fg
+
 
 def loadimages_ndds(dir, max_count=None):
-    ret = []
+    imgs = []
     with open(f"{dir}/_object_settings.json") as f_os:
         obj_s = json.loads(f_os.read())
 
@@ -110,11 +114,16 @@ def loadimages_ndds(dir, max_count=None):
 
     print("Dataset contains following objects:")
 
+    mask_ids = []
     for i, o in enumerate(obj_s['exported_objects']):
         print(i+1, "-", o['class'].ljust(15), 'id:', o['segmentation_class_id'])
+        mask_ids.append(o['segmentation_class_id'])
     print()
 
     files = get_files(dir);
+
+    for i, file in enumerate(files):
+        print(f"{file}.cs.png")
 
     if max_count is not None:
         files = files[:max_count]
@@ -130,14 +139,18 @@ def loadimages_ndds(dir, max_count=None):
 
             with open(f"{file}.dope.json", 'w') as f:
                 f.write(json.dumps(new, indent=4))
+
+        mask = cv2.imread(f"{file}.cs.png")
+        mask = np.isin(mask, mask_ids).astype(np.float32)
             
-        ret.append((
-            f"{file}.png",      # Img filename
-            i,                  # Video ID
-            0,                  # Frame ID
-            f"{file}.dope.json" # Annotation filename
+        imgs.append((
+            f"{file}.png",       # Img filename
+            i,                   # Video ID
+            0,                   # Frame ID
+            f"{file}.dope.json", # Annotation filename
+            mask
         ))
-    print(f"Loaded {len(ret)} datapoints")
-    return ret
+    print(f"Loaded {len(imgs)} datapoints")
+    return imgs
 
 # loadimages_ndds("/home/olli/Data/Generated/pallet/", 500)
