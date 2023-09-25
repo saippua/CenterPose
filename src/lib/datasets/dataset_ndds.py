@@ -122,9 +122,6 @@ def loadimages_ndds(dir, max_count=None):
 
     files = get_files(dir);
 
-    for i, file in enumerate(files):
-        print(f"{file}.cs.png")
-
     if max_count is not None:
         files = files[:max_count]
 
