@@ -400,6 +400,9 @@ class ObjectPoseDataset(data.Dataset):
         if self.opt.c == 'chair':
             theta = 2 * np.pi / 4
             num_symmetry = 4
+        elif self.opt.c == 'pallet':
+            theta = 2 * np.pi / 2
+            num_symmetry = 2
         elif (self.opt.c == 'cup' and self.opt.mug == False) or self.opt.c == 'bottle':
             num_symmetry = self.opt.num_symmetry
             theta = 2 * np.pi / num_symmetry
