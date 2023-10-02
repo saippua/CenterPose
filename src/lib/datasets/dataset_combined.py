@@ -109,14 +109,16 @@ class ObjectPoseDataset(data.Dataset):
             [0.01, 0.01, 0.01, 0.01, 0.01 ]],
     }
 
-    def __init__(self, opt, split):
+    def __init__(self, opt, split, ratio=0.8, seed=None):
         super(ObjectPoseDataset, self).__init__()
         self.edges = [[2, 4], [2, 6], [6, 8], [4, 8],
                       [1, 2], [3, 4], [5, 6], [7, 8],
                       [1, 3], [1, 5], [3, 7], [5, 7]]
 
         # Todo: need to fix the path name
-        if opt.tracking_task == True:
+        if opt.ds_dir is not None:
+            self.data_dir = opt.ds_dir
+        elif opt.tracking_task == True:
             self.data_dir = os.path.join(opt.data_dir, 'outf_all')
         else:
             self.data_dir = os.path.join(opt.data_dir, 'outf')
@@ -124,14 +126,19 @@ class ObjectPoseDataset(data.Dataset):
         # # Debug only
         # self.data_dir = os.path.join(opt.data_dir, 'outf_all_test')
 
-        self.img_dir = os.path.join(self.data_dir, f"{opt.c}_{split}")
+        if opt.ds_dir is not None:
+            self.img_dir = self.data_dir
+            if split == 'val' or split == 'test':
+                ratio *= -1
+        else:
+            self.img_dir = os.path.join(self.data_dir, f"{opt.c}_{split}")
 
-        # Todo: take the test split as validation
-        if split == 'val' and not os.path.isdir(self.img_dir):
-            self.img_dir = os.path.join(self.data_dir, f"{opt.c}_test")
+            # Todo: take the test split as validation
+            if split == 'val' and not os.path.isdir(self.img_dir):
+                self.img_dir = os.path.join(self.data_dir, f"{opt.c}_test")
 
-        self.static_bg = opt.c != 'pallet'
-        if not self.static_bg:
+        self.dynamic_bg = opt.c == 'pallet'
+        if self.dynamic_bg:
             self.bg_dir = opt.bg_dir
             if not os.path.isdir(self.bg_dir):
                 print("Background directory not found!")
@@ -225,16 +232,36 @@ class ObjectPoseDataset(data.Dataset):
             return bgs
 
         def load_data(path, extensions):
-            if self.static_bg:
+            if opt.ds_dir is None:
                 imgs = loadimages(path, extensions=extensions)
             else:
                 print(f"Loading pallet dataset {path}")
-                imgs = loadimages_ndds(path)
+                imgs = loadimages_ndds(path, ratio, seed)
             return imgs
 
         self.images = load_data(self.img_dir, extensions=["png", 'jpg'])
+
+        # if opt.ds_dir is not None:
+        #     inds = range(len(self.images))
+        #     gen = np.random.default_rng(seed)
+        #     chosen_inds = sorted(gen.choice(inds, int(round(len(inds) * ratio)), replace=False))
+        #     rev = [ i for i in range(len(self.images)) if i not in chosen_inds ]
+        #
+        #     new_img = []
+        #     rev_img = []
+        #     for i, img in enumerate(self.images):
+        #         if i in chosen_inds:
+        #             new_img.append(img)
+        #         else:
+        #             rev_img.append(img)
+        #
+        #     if split == 'val' or split == 'test':
+        #         self.images = rev_img
+        #     else:
+        #         self.images = new_img
+                
         print("Loading data from {}".format(self.img_dir))
-        if not self.static_bg:
+        if self.dynamic_bg:
             self.bgs = loadbgs(self.bg_dir, extensions=["png", 'jpg'])
             if len(self.bgs) == 0:
                 print(f"NO BACKGROUNDS FOUND IN DIR {self.bg_dir}")
@@ -323,7 +350,7 @@ class ObjectPoseDataset(data.Dataset):
 
         # <editor-fold desc="Data initialization">
 
-        if self.static_bg:
+        if not self.dynamic_bg:
             img_path, video_id, frame_id, path_json = self.images[index]
             mask = None
         else:
@@ -338,7 +365,7 @@ class ObjectPoseDataset(data.Dataset):
         except:
             return None
 
-        if not self.static_bg:
+        if self.dynamic_bg:
             # try:
             bg_path = np.random.choice(self.bgs)
             bg = cv2.imread(bg_path)
@@ -1088,6 +1115,8 @@ class ObjectPoseDataset(data.Dataset):
 
                 if ((h > 0 and w > 0) or (rot != 0)) and visible_flag:
                     radius = gaussian_radius((math.ceil(h), math.ceil(w)))
+                    if self.opt.c == 'pallet':
+                        radius *= 0.5
                     radius = self.opt.hm_gauss if self.opt.mse_loss else max(0, int(radius))
 
                     if self.opt.center_3D == False:

@@ -104,7 +104,10 @@ def swap_background(fg, bg, mask):
     return fg
 
 
-def loadimages_ndds(dir, max_count=None):
+def loadimages_ndds(dir, ratio=1.0, seed=None, max_count=None):
+    if seed is None:
+        print("loadimages_ndds requires seed!")
+        exit()
     imgs = []
     with open(f"{dir}/_object_settings.json") as f_os:
         obj_s = json.loads(f_os.read())
@@ -122,12 +125,27 @@ def loadimages_ndds(dir, max_count=None):
 
     files = get_files(dir);
 
+    if ratio != 1.0:
+        if ratio < 0:
+            ratio *= -1
+            select_reverse = True
+        else:
+            select_reverse = False
+
+        inds = range(len(files))
+        gen = np.random.default_rng(seed)
+        chosen_inds = sorted(gen.choice(inds, int(round(len(inds) * ratio)), replace=False))
+        if select_reverse:
+            chosen_inds = [ i for i in range(len(files)) if i not in chosen_inds ]
+
+        files = [ file for i, file in enumerate(files) if i in chosen_inds ]
+
     if max_count is not None:
         files = files[:max_count]
 
     # files = filter(files, o['segmentation_class_id'], 300)
 
-    for i, file in enumerate(files):
+    for i, file in tqdm(enumerate(files), total=len(files), desc="Loading NDDS dataset"):
         if not os.path.isfile(f"{file}.dope.json"):
             with open(f"{file}.json", 'r') as f:
                 old_json = json.loads(f.read())
@@ -148,6 +166,7 @@ def loadimages_ndds(dir, max_count=None):
             mask
         ))
     print(f"Loaded {len(imgs)} datapoints")
+
     return imgs
 
 # loadimages_ndds("/home/olli/Data/Generated/pallet/", 500)

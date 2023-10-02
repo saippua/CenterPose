@@ -49,11 +49,12 @@ def main(opt):
     trainer.set_device(opt.gpus, opt.chunk_sizes, opt.device)
 
     print('Setting up data...')
-    val_dataset = Dataset(opt, 'val')
+    val_dataset = Dataset(opt, 'val', 0.8, 19250)
     if opt.tracking_task == True:
         val_dataset_subset = torch.utils.data.Subset(val_dataset, range(0, len(val_dataset), 15))
     else:
         val_dataset_subset = val_dataset
+
 
     val_loader = torch.utils.data.DataLoader(
         val_dataset_subset,
@@ -68,7 +69,7 @@ def main(opt):
         _, preds, _ = trainer.val(0, val_loader)
 
     train_loader = torch.utils.data.DataLoader(
-        Dataset(opt, 'train'),
+        Dataset(opt, 'train', 0.8, 19250),
         batch_size=opt.batch_size,
         shuffle=True,
         num_workers=opt.num_workers,
@@ -123,11 +124,13 @@ if __name__ == '__main__':
     opt = opt.parser.parse_args()
 
     # Local configuration
-    opt.c = 'bike'
+    opt.c = 'pallet'
     opt.arch='dlav1_34'
     opt.obj_scale = True
     opt.obj_scale_weight = 1
     opt.mug = False
+    opt.bg_dir = '/home/localadmin/Data/VOCdevkit/VOC2012/JPEGImages/'
+    opt.ds_dir = '/home/localadmin/Data/Generated/pallet_close/'
 
     # Training param
     opt.exp_id = f'objectron_{opt.c}_{opt.arch}'
@@ -137,7 +140,7 @@ if __name__ == '__main__':
     opt.batch_size = 16
     opt.lr = 6e-5
     opt.gpus = '0'
-    opt.num_workers = 4
+    opt.num_workers = 0 # Olli: set this to 0. Otherwise pallet dataset crashes (default was 4)
     opt.print_iter = 5
     opt.debug = 5
     opt.save_all = True
