@@ -470,16 +470,10 @@ class DLASeg(nn.Module):
         self.use_convGRU = use_convGRU
         if self.use_convGRU == True:
 
-            if self.opt.tracking_task:
-                self.convGRU = ConvGRU(input_channels=channels[self.first_level],
-                                       hidden_channels=[64, ],
-                                       kernel_size=3, step=4,
-                                       effective_step=[0, 1, 2, 3])
-            else:
-                self.convGRU = ConvGRU(input_channels=channels[self.first_level],
-                                       hidden_channels=[64, ],
-                                       kernel_size=3, step=3,
-                                       effective_step=[0, 1, 2])
+            self.convGRU = ConvGRU(input_channels=channels[self.first_level],
+                                   hidden_channels=[64, ],
+                                   kernel_size=3, step=3,
+                                   effective_step=[0, 1, 2])
 
         if out_channel == 0:
             out_channel = channels[self.first_level]
@@ -542,25 +536,13 @@ class DLASeg(nn.Module):
         if self.use_convGRU == True:
             gru_outputs, _ = self.convGRU(y[-1])
 
-            if self.opt.tracking_task:
-                # Todo: We have not tried this idea yet
-                for head in self.heads:
-                    if head == 'tracking' or head == 'tracking_hp':
-                        z[head] = self.__getattr__(head)(gru_outputs[0])
-                    if head == 'hm' or head == 'wh' or head == 'reg':
-                        z[head] = self.__getattr__(head)(gru_outputs[1])
-                    if head == 'hm_hp' or head == 'hp_offset' or head == 'hps' or head == 'hps_uncertainty':
-                        z[head] = self.__getattr__(head)(gru_outputs[2])
-                    if head == 'scale' or head == 'scale_uncertainty':
-                        z[head] = self.__getattr__(head)(gru_outputs[3])
-            else:
-                for head in self.heads:
-                    if head == 'hm' or head == 'wh' or head == 'reg':
-                        z[head] = self.__getattr__(head)(gru_outputs[0])
-                    if head == 'hm_hp' or head == 'hp_offset' or head == 'hps':
-                        z[head] = self.__getattr__(head)(gru_outputs[1])
-                    if head == 'scale':
-                        z[head] = self.__getattr__(head)(gru_outputs[2])
+            for head in self.heads:
+                if head == 'hm' or head == 'wh' or head == 'reg':
+                    z[head] = self.__getattr__(head)(gru_outputs[0])
+                if head == 'hm_hp' or head == 'hp_offset' or head == 'hps':
+                    z[head] = self.__getattr__(head)(gru_outputs[1])
+                if head == 'scale':
+                    z[head] = self.__getattr__(head)(gru_outputs[2])
 
             return [z]
         else:

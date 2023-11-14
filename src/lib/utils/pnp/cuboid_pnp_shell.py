@@ -59,7 +59,7 @@ def pnp_shell(opt, meta, bbox, points_filtered, scale, OPENCV_RETURN = False):
         if opt.c in ['bike', 'laptop', 'shoe']:
             pass
         else:
-            if opt.c in ['book', 'chair', 'cereal_box']:
+            if opt.c in ['book', 'chair', 'cereal_box', 'pallet']:
                 num_not_visible_thresh = 6
             if opt.c in ['camera', 'bottle', 'cup']:
                 num_not_visible_thresh = 3

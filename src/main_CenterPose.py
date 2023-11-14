@@ -123,17 +123,20 @@ if __name__ == '__main__':
     opt = opt.parser.parse_args()
 
     # Local configuration
-    opt.c = 'bike'
+    opt.c = 'pallet'
     opt.arch='dlav1_34'
     opt.obj_scale = True
     opt.obj_scale_weight = 1
+    opt.hp_weight = 0
     opt.mug = False
 
+    ##
+    ## For pallet training. lr step should be '20'
     # Training param
     opt.exp_id = f'objectron_{opt.c}_{opt.arch}'
     opt.num_epochs = 140
     opt.val_intervals = 5
-    opt.lr_step = '90,120'
+    opt.lr_step = '80,100,120'
     opt.batch_size = 16
     opt.lr = 6e-5
     opt.gpus = '0'
@@ -144,7 +147,7 @@ if __name__ == '__main__':
 
     # # To continue
     # opt.resume = True
-    # opt.load_model = ""
+    # opt.load_model = "../exp/object_pose/pallet_1"
 
     # Copy from parse function from opts.py
     opt.gpus_str = opt.gpus

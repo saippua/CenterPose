@@ -110,6 +110,9 @@ class ObjectPoseDataset(data.Dataset):
                       [1, 2], [3, 4], [5, 6], [7, 8],
                       [1, 3], [1, 5], [3, 7], [5, 7]]
 
+        # self.max_load = max # maximum number of datapoints to load
+        self.max_load = opt.max_load
+
         # Todo: need to fix the path name
         if opt.tracking_task == True:
             self.data_dir = os.path.join(opt.data_dir, 'outf_all')
@@ -118,12 +121,14 @@ class ObjectPoseDataset(data.Dataset):
 
         # # Debug only
         # self.data_dir = os.path.join(opt.data_dir, 'outf_all_test')
+        if opt.data_name is None:
+            opt.data_name = opt.c
 
-        self.img_dir = os.path.join(self.data_dir, f"{opt.c}_{split}")
+        self.img_dir = os.path.join(self.data_dir, f"{opt.data_name}_{split}")
 
         # Todo: take the test split as validation
         if split == 'val' and not os.path.isdir(self.img_dir):
-            self.img_dir = os.path.join(self.data_dir, f"{opt.c}_test")
+            self.img_dir = os.path.join(self.data_dir, f"{opt.data_name}_test")
 
         self.max_objs = 10
         self._data_rng = np.random.RandomState(123)
@@ -212,7 +217,13 @@ class ObjectPoseDataset(data.Dataset):
         print(self.img_dir)
         self.images += load_data(self.img_dir, extensions=["png", 'jpg'])
         self.num_samples = len(self.images)
-        print('Loaded {} {} samples'.format(split, self.num_samples))
+
+        if self.max_load is not None and self.num_samples > self.max_load:
+            print('Loaded {} {} samples. Taking the first {}'.format(split, self.num_samples, self.max_load))
+            self.images = self.images[:self.max_load]
+            self.num_samples = self.max_load
+        else:
+            print('Loaded {} {} samples'.format(split, self.num_samples))
 
         # Group all the info by video_id
         # self.images save all the img_path, video_id, frame_id, json_path
@@ -361,6 +372,9 @@ class ObjectPoseDataset(data.Dataset):
         elif (self.opt.c == 'cup' and self.opt.mug == False) or self.opt.c == 'bottle':
             num_symmetry = self.opt.num_symmetry
             theta = 2 * np.pi / num_symmetry
+        elif self.opt.c == 'pallet':
+            theta = 2 * np.pi / 2
+            num_symmetry = 2
         else:
             # No symmetry
             num_symmetry = 1
@@ -965,6 +979,9 @@ class ObjectPoseDataset(data.Dataset):
                 else:
                     num_symmetry = 1
 
+            if self.opt.c == 'pallet':
+                num_symmetry = 2
+
             if self.opt.c == 'cup':
                 if self.opt.tracking_task == True and \
                         ((self.opt.mug == False and ann_pre['mug'] == True) or \
@@ -1177,6 +1194,8 @@ class ObjectPoseDataset(data.Dataset):
         if self.opt.tracking_hp:
             ret.update({'tracking_hp': tracking_hp, 'tracking_hp_mask': tracking_hp_mask})
 
+        scale = np.ones((num_symmetry, self.max_objs, 3), dtype=np.float32)
+        scale *= np.array([0.8,0.144,1.2])
         if self.opt.obj_scale:
             ret.update({'scale': scale})
             if self.opt.obj_scale_uncertainty:

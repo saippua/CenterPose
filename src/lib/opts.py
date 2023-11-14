@@ -117,6 +117,8 @@ class opts(object):
                                  help='multi scale test augmentation.')
         self.parser.add_argument('--nms', action='store_true',
                                  help='run nms in testing.')
+        self.parser.add_argument('--max_load', type=int, default=None,
+                                 help='max number of datapoints loaded from dataset.')
         self.parser.add_argument('--K', type=int, default=100,
                                  help='max number of output objects.')
         self.parser.add_argument('--not_prefetch_test', action='store_true',
@@ -282,6 +284,12 @@ class opts(object):
                                       "1: with distance + conf=1 heat "
                                       "2: with pnp + heat"
                                       "3: with pnp + conf=1 heat"
+                                 )
+
+        self.parser.add_argument('--data_name', default=None,
+                                 help="Dataset name. Should match the folder "
+                                      "name except without the _train/_test "
+                                      "suffix. Defaults to the class name."
                                  )
 
         self.parser.add_argument('--pre_thresh', type=float, default=-1,

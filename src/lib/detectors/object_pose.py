@@ -229,7 +229,7 @@ class ObjectPoseDetector(BaseDetector):
 
         debugger.add_img(img, img_id='out_kps_processed_pred')
         heat = output['hm']
-        K = 100
+        K = self.opt.K
         heat = _nms(heat)
         scores, inds, clses, ys, xs = _topk(heat, K=K)  # inds: index in a single heatmap
         for i in range(K):

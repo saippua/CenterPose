@@ -316,7 +316,9 @@ def object_pose_decode(
         obj_scale = _transpose_and_gather_feat(obj_scale, inds)
         obj_scale = obj_scale.view(batch, K, 3)
     else:
-        obj_scale = torch.zeros([batch, K, 3], dtype=torch.float32)
+        # If we don't predict scale, we use pallet scale as default
+        obj_scale = torch.ones([batch, K, 3], dtype=torch.float32)
+        obj_scale *= np.array([0.8, 0.144, 1.2])
         obj_scale = obj_scale.to(scores.device)
 
     if obj_scale_uncertainty is not None:

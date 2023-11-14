@@ -78,7 +78,7 @@ def load_model(model, model_path, optimizer=None, resume=False,
                     start_lr *= 0.1
             for param_group in optimizer.param_groups:
                 param_group['lr'] = start_lr
-            print('Resumed optimizer with start lr', start_lr)
+            print('Resumed optimizer with start lr', start_lr, 'at epoch', start_epoch)
         else:
             print('No optimizer parameters in checkpoint.')
     if optimizer is not None:
