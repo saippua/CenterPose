@@ -9,6 +9,7 @@ from __future__ import print_function
 import torch.utils.data as data
 import numpy as np
 import json
+import random
 import cv2
 import torch
 import os
@@ -112,6 +113,8 @@ class ObjectPoseDataset(data.Dataset):
 
         # self.max_load = max # maximum number of datapoints to load
         self.max_load = opt.max_load
+        if split == 'val' and opt.max_load_val is not None:
+            self.max_load = opt.max_load_val
 
         # Todo: need to fix the path name
         if opt.tracking_task == True:
@@ -216,6 +219,7 @@ class ObjectPoseDataset(data.Dataset):
         self.images = []
         print(self.img_dir)
         self.images += load_data(self.img_dir, extensions=["png", 'jpg'])
+        random.shuffle(self.images) # Shufle loaded images
         self.num_samples = len(self.images)
 
         if self.max_load is not None and self.num_samples > self.max_load:

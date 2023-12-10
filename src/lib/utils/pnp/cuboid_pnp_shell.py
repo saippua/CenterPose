@@ -9,7 +9,7 @@ from scipy.spatial.transform import Rotation as R
 
 
 def pnp_shell(opt, meta, bbox, points_filtered, scale, OPENCV_RETURN = False):
-    cuboid3d = Cuboid3d(1 * np.array(scale) / scale[1])
+    cuboid3d = Cuboid3d(1 * np.array(scale))
 
     pnp_solver = \
         CuboidPNPSolver(
@@ -54,8 +54,6 @@ def pnp_shell(opt, meta, bbox, points_filtered, scale, OPENCV_RETURN = False):
         bbox['kps_pnp'] = projected_points # Normalized 9*2
 
         # Todo: Sometimes, the label in the dataset is missing if many keypoints are not visible,
-        #  e.g., a camera on the corner
-
         if opt.c in ['bike', 'laptop', 'shoe']:
             pass
         else:

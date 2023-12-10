@@ -119,6 +119,8 @@ class opts(object):
                                  help='run nms in testing.')
         self.parser.add_argument('--max_load', type=int, default=None,
                                  help='max number of datapoints loaded from dataset.')
+        self.parser.add_argument('--max_load_val', type=int, default=None,
+                                 help='max number of datapoints loaded from dataset.')
         self.parser.add_argument('--K', type=int, default=100,
                                  help='max number of output objects.')
         self.parser.add_argument('--not_prefetch_test', action='store_true',
