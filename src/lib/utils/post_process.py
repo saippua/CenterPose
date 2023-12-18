@@ -26,7 +26,8 @@ def object_pose_post_process(dets, c, s, h, w, opt, Inference=False):
         for j in range(len(dets['scores'][i])):
             item = {}
             item['score'] = float(dets['scores'][i][j])
-            item['kps_score'] = list(dets['kps_scores'][i][j])
+            item['kps_score'] = list(dets['kps_scores'][i,:,j,0])
+
             item['cls'] = int(dets['clses'][i][j])
             item['obj_scale'] = dets['obj_scale'][i][j]
             item['obj_scale_uncertainty'] = dets['obj_scale_uncertainty'][i][j]

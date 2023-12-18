@@ -346,13 +346,11 @@ def object_pose_decode(
         tracking_hp = torch.zeros([batch, K, num_joints * 2], dtype=torch.float32)
         tracking_hp = tracking_hp.to(scores.device)
 
-    scores_shape = list(scores.shape)
-    scores_shape[-1] = -1
 
     if Inference == True:
         detections = {'bboxes': bboxes,
                       'scores': scores,
-                      'kps_scores': hm_score.reshape(scores_shape),
+                      'kps_scores': hm_score,
                       'kps': kps,
                       'clses': clses,
                       'obj_scale': obj_scale,
@@ -368,7 +366,7 @@ def object_pose_decode(
     else:
         detections = {'bboxes': bboxes,
                       'scores': scores,
-                      'kps_scores': hm_score.reshape(scores_shape),
+                      'kps_scores': hm_score,
                       'kps': kps,
                       'clses': clses,
                       'obj_scale': obj_scale,

@@ -123,9 +123,9 @@ def soft_nms_nvidia(src_boxes, sigma=0.5, Nt=0.3, threshold=0.001, method=0):
     keep = [i for i in range(N)]
     return keep
 
-class ObjectPoseDetector(BaseDetector):
+class ValidationDetector(BaseDetector):
     def __init__(self, opt):
-        super(ObjectPoseDetector, self).__init__(opt)
+        super(ValidationDetector, self).__init__(opt)
         self.flip_idx = opt.flip_idx
 
     def process(self, images, pre_images=None, pre_hms=None, pre_hm_hp=None,
@@ -225,7 +225,7 @@ class ObjectPoseDetector(BaseDetector):
         if self.opt.hm_hp:
             pred = debugger.gen_colormap_hp(
                 output['hm_hp'][0].detach().cpu().numpy())
-            debugger.add_blend_img(img, pred, 'out_hmhp_pred')
+            debugger.add_blend_img(img, pred, 'out_hmhp_pred2')
 
         debugger.add_img(img, img_id='out_kps_processed_pred')
         heat = output['hm']
@@ -241,10 +241,10 @@ class ObjectPoseDetector(BaseDetector):
                 # Save pred_kps for debug
                 if self.opt.hps_uncertainty:
                     debugger.add_coco_hp_paper(dets['bboxes'][0, i], dets['kps_displacement_mean'][0, i],
-                                               dets['kps_displacement_std'][0, i], img_id='out_hmhp_pred')
+                                               dets['kps_displacement_std'][0, i], img_id='out_hmhp_pred2')
                 else:
                     debugger.add_coco_hp_paper(dets['bboxes'][0, i], dets['kps_displacement_mean'][0, i],
-                                               img_id='out_hmhp_pred')
+                                               img_id='out_hmhp_pred2')
 
                 if self.opt.tracking == True:
                     debugger.add_arrow(
@@ -412,4 +412,3 @@ class ObjectPoseDetector(BaseDetector):
 
             with open(f"{target_dir_path}/{file_id_name}.json", 'w') as fp:
                 json.dump(dict_out, fp)
-

@@ -133,7 +133,7 @@ class ObjectPoseDataset(data.Dataset):
         if split == 'val' and not os.path.isdir(self.img_dir):
             self.img_dir = os.path.join(self.data_dir, f"{opt.data_name}_test")
 
-        self.max_objs = 10
+        self.max_objs = opt.max_objs
         self._data_rng = np.random.RandomState(123)
         self._eig_val = np.array([0.2141788, 0.01817699, 0.00341571],
                                  dtype=np.float32)
@@ -219,7 +219,7 @@ class ObjectPoseDataset(data.Dataset):
         self.images = []
         print(self.img_dir)
         self.images += load_data(self.img_dir, extensions=["png", 'jpg'])
-        random.shuffle(self.images) # Shufle loaded images
+        # random.shuffle(self.images) # Shufle loaded images
         self.num_samples = len(self.images)
 
         if self.max_load is not None and self.num_samples > self.max_load:
@@ -1090,6 +1090,9 @@ class ObjectPoseDataset(data.Dataset):
                         # Todo: Currently, use 0 as the std, not used yet
                         if self.opt.obj_scale_uncertainty:
                             scale_uncertainty[id_symmetry, k] = 0
+                    else:
+                        scale[id_symmetry, k] = np.array([0.8,0.144,1.2])
+
 
                     wh[id_symmetry, k] = 1. * w, 1. * h
                     ind[id_symmetry, k] = ct_int[1] * output_res + ct_int[0]
@@ -1198,8 +1201,6 @@ class ObjectPoseDataset(data.Dataset):
         if self.opt.tracking_hp:
             ret.update({'tracking_hp': tracking_hp, 'tracking_hp_mask': tracking_hp_mask})
 
-        scale = np.ones((num_symmetry, self.max_objs, 3), dtype=np.float32)
-        scale *= np.array([0.8,0.144,1.2])
         if self.opt.obj_scale:
             ret.update({'scale': scale})
             if self.opt.obj_scale_uncertainty:

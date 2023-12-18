@@ -104,6 +104,8 @@ class BaseTrainer(object):
                 epoch, iter_id, num_iters, phase=phase,
                 total=bar.elapsed_td, eta=bar.eta_td)
             for l in avg_loss_stats:
+                if l != 'loss' and l != 'hm_hp_loss' and l != 'hp_loss' and l != 'obj_scale_loss':
+                    continue
                 # Sometimes, some heads are not enabled
                 if torch.is_tensor(loss_stats[l]) == True:
                     avg_loss_stats[l].update(

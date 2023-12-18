@@ -9,7 +9,10 @@ from scipy.spatial.transform import Rotation as R
 
 
 def pnp_shell(opt, meta, bbox, points_filtered, scale, OPENCV_RETURN = False):
-    cuboid3d = Cuboid3d(1 * np.array(scale))
+    if opt.obj_scale:
+        cuboid3d = Cuboid3d(1 * np.array(scale) / scale[1])
+    else:
+        cuboid3d = Cuboid3d(1 * np.array(scale))
 
     pnp_solver = \
         CuboidPNPSolver(
